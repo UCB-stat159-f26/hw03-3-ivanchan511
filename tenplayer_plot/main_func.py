@@ -2,7 +2,7 @@
 from .private_func import normalize_player_name, fetch_player_js, js_to_df, get_player_dob, organize_player_df, calculate_age_difference
 
 # All Private Functions for plot_player_data
-from .private_func import create_plot, plot_win_loss_results, format_axes, format_legend_grid, format_y_labels, add_axis_labels
+from .private_func import create_plot, plot_win_loss_results, format_axes, format_legend_grid, format_y_labels, add_axis_labels, check_dataframe, add_title
 
 #import pandas as pd
 
@@ -24,16 +24,21 @@ def get_player_data(player_name):
 	# Return Final Cleaned DataFrame
 	return matches
 
-def plot_player_data(player_df):
+def plot_player_data(player_df, player_name = ""):
 	"""
 	Create a scatter plot of a player's career match results.
 	* Optional Input: player_name for custom title
 	"""
+	# Check the DataFrame before Plotting
+	check_dataframe(player_df)
+
+	# Plotting Section
 	fig, ax = create_plot()
 	plot_win_loss_results(player_df, ax)
 	format_axes(ax, player_df)
 	format_legend_grid(ax)
 	format_y_labels(ax)
 	add_axis_labels(ax)
+	add_title(ax, player_df, player_name)
 	return fig, ax
 	
