@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import re
 
+# For Main Function `get_player_data`
 def normalize_player_name(player_name):
 	""" Normalize a player's name for URL."""
 	# Check if input is a string
