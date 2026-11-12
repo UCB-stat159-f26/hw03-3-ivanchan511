@@ -1,51 +1,122 @@
 # HW3) Python Package `tenplayer_plot`
 
-In this homework assignment, I continued from our previous assignment, which examined whether we could replicate the graphic featured in the [New York Times article](https://www.nytimes.com/interactive/2022/08/28/sports/tennis/serena-age-opponents.html).    
+This is a continuation of HW1 and HW2, which examined and replicated the graphic featured in the [New York Times article](https://www.nytimes.com/interactive/2022/08/28/sports/tennis/serena-age-opponents.html).    
 
-We began with the [raw data JavaScript file](https://www.tennisabstract.com/jsmatches/SerenaWilliamsCareer.js), which contains Serena Williams's professional match records. First, we wrote `01_download_data.py` to download the raw data file. Next, we wrote `02_clean_data.py`to clean the raw data and export it as `clean_serena.csv` in the cleaned data directory. Finally, we wrote `03_replicate_graphic.py` to recreate the graphic and save it as a PNG file, shown below.  
+For this assignment, I developed a Python Package called `tenplayer_plot`. The package retrieves a tennis player's career match records from [tennisabstract.com](https://www.tennisabstract.com/) and generates a scatter plot similar to the New York Times data visualization replicated in HW2, without the original article's annotations.
 
-Overall, I would consider the graphic replicable because we were able to clean the raw data into a cleaned dataset and produce a graph that closely resembles the original New York Times graphic. Furthermore, we could use our `Makefile` to automate the process of downloading, cleaning, and visualizing the data, making the workflow repeatable.  
+The package is designed to work with different professional tennis players, including Serena Williams and Rafael Nadal. It contains two main public functions: `get_player_data` and `plot_payer_data`.
 
-The project uses `Python`, `pandas`, `numpy`, `requests`, and `matplotlib` for data processing and visualization.
+The package uses Python and the following libraries:
+* `pandas`: Data manipulation and DataFrame processing.
+* `numpy`: Numerical operations and axis configuration.
+* `requests`: Retrieving player data from Tennis Abstract.
+* `matplotlib`: Creating and customizing scatter plots.
 
-## Dataset
-The source of the data is the **Tennis Abstract's Record on Serena Williams's Professional Matches**:
-<https://www.tennisabstract.com/jsmatches/SerenaWilliamsCareer.js>. 
+## Package Main Functions
+The package provides two main public functions:
+1. `get_player_data`
+2. `plot_payer_data`
 
-To download the datasets, there are **three** ways:
-1. **Recommended:** In the terminal, cd to this directory, and run `make data/raw/raw_serena.js`. This should automatically download the data file to the `data/raw/` folder.
-2. Run the `01_download_data.py` script under the `script/` folder; this will automatically download the datasets in `data/raw/`.  
-3. You could also directly download the `raw_serena.js` dataset in the `data/raw/` folder.  
+The following sections explain how to use each function.
+### Function Usage and Guide
+#### 1. `get_player_data(player_name)`
+* Input: Player Name **(str)**
+    * Some acceptable input formats include: 
+        * `"serena williams"`, `"Serena Williams"`, `"SerenaWilliams"`, `"rafael nadal"`, `"Rafael Nadal"`
+    * **Note:** Concatenated names should preserve capitalization (e.g., "SerenaWilliams"). 
+        * Lowercase concatenated names such as **"serenawilliams"** are not recognized because the function cannot determine where name boundaries occur.
+    * If the player cannot be found, the function raises a `ValueError` error message:
+    ```
+    Player 'CakeBake' not found. Please Type in a Valid Player Name.
+    ```
+* Output: **`pandas.DataFrame`**  
+The returned DataFrame contains the following columns:
+| **Column** | **Description** |
+|:---:|:---:|
+| match_date | Date of the match, stored as a datetime object |
+| win/loss | Match result (W or L) |
+| opponent_name | Opponent's name |
+| player_age_at_match | Player's age when the match took place |
+| opponent_age_at_match | Opponent's age when the match took place |
+| age_difference | Difference between the player's age and opponent's age |
+    * An additional column, `opponent_dob`, is included for **female players** because their original career match records provide the opponent's date of birth rather than their age at the time of the match.
+    * The package handles this difference by calculating the opponent's age from their date of birth and the match date. For male players, the opponent's age is already available in the original match records.
+
+#### 2. `plot_payer_data(player_df, player_name = "")`
+* **Required Input:** Player DataFrame **(`pandas.DataFrame`)**
+    * Ideally, this should be the DataFrame returned by `get_player_data`.
+    * The function checks whether the input DataFrame contains the required columns before generating the plot:
+        * `"match_date"`, `"win/loss"`, `"player_age_at_match"`, `"age_difference"`
+            * **Column names must match exactly.** 
+    * If any required columns are missing, the function raises a `ValueError` error message identifying the missing columns.
+    ```
+    Missing required columns: ... 
+    ```
+* **Optional Input:** Player Name **(str)**
+    * This argument is used to customize the plot title. By default, it is an empty string.
+    * The title follows these formats:
+        * Without a player name: `Player Professional Matches, Age {age_min} to {age_max}`
+        * With a player name: `{player_name}'s Professional Matches, Age {age_min} to {age_max}`.
+    * Here, `age_min` and `age_max` represent the youngest and oldest ages recorded in the player's match data.
+* Output: fig, ax 
+    * The function returns the `Matplotlib` figure and axes objects. 
+    * This allows users to further customize the visualization or save the plot in different formats.
+
+### Example Usage
+The following example demonstrates how to retrieve a player's career data and generate a corresponding scatter plot.
+```
+import tenplayer_plot
+
+# Retrieve career match data
+serena_df = get_player_data("Serena Williams")
+
+# Generate scatter plot
+fig, ax = plot_player_data(serena_df, "Serena Williams")
+
+# Save the figure
+fig.savefig("serena_graph.png", dpi=300, bbox_inches="tight")
+``` 
+The same functions can be used with other players:
+```
+# Retrieve Rafael Nadal's career match data
+rafael_df = get_player_data("Rafael Nadal")
+
+# Generate scatter plot
+fig, ax = plot_player_data(rafael_df, "Rafael Nadal")
+```
 
 ## Package Installation
-To install the package, you could follow these steps:
+To install the package, follow these steps:
 
-1. Clone the repository
+1. **Install the package from GitHub**  
+* Run the following command in your terminal or notebook:
 ```
-conda env create -f environment.yml
-conda activate hw02-env
+pip install git+https://github.com/UCB-stat159-f26/hw03-3-ivanchan511.git
 ```
-2. Make sure to have the designated data file in the `data/raw/` folder. If not, please download the data using one of the [methods](https://github.com/UCB-stat159-f26/hw02-3-ivanchan511/tree/main#datasets) mentioned above. 
-3. Run `Make` Commands <br> 
-This homework is designed to automatically complete all tasks within one make command. In your terminal, under this repository directory, run `make all`; this will automatically run all the script files, export the graphic in PNG format, and render the report in HTML and PDF format.
-4. View the output and report <br>
-The replicated figure is saved as a PNG in the `outputs/` directory.  
-The project report is located in the `report/` directory.
+2. **Import the package**  
+```
+import tenplayer_plot
+```
+3. **Retrieve player data and generate a plot**   
+* Refer to the Function Usage and Guide section above for examples.
+
+## Reflection
+TBD
 
 ## Project Structure
-Here's a diagram that depicts the overall file structure of the project:
+The following diagram illustrates the overall file structure of the project:
 ```
 .
 ├── tenplayer_plot/
-│   ├── __init__.py (File to initiate the package)
-│   ├── main_func.py (Main Functions for the package)
-│   └── private_func.py (Helper Functions for the main functions)
+│   ├── __init__.py               # Initializes the package
+│   ├── main_func.py              # Main public functions
+│   └── private_func.py           # Helper functions for the main functions
 │
 ├── tests/
-│   ├── js_for_testing/ (Special Created Files to avoid hitting live servers)
+│   ├── js_for_testing/           # Test Files to avoid hitting live servers
 │   │   ├── FemalePlayerCareer.js
 │   │   └── MalePlayerCareer.js
-│   └── test_cases.py (Test Cases for the Functions)
+│   └── test_cases.py             # Automated tests for data cleaning and processing
 │
 ├── README.md
 ├── instructions.md
