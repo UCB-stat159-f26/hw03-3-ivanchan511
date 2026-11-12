@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tenplayer_plot"
-version = "0.2.0"
+version = "1.0.0"
 description = "Stat 159 HW 3 Package to Plot Tennis Player Data"
 authors = [{ name = "Ivan Chan" }]
 dependencies = [
