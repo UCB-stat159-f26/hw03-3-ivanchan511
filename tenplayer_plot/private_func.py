@@ -32,7 +32,7 @@ def fetch_player_js(player_name):
 
 	# Raise error for invalid name
 	if response.status_code == 404:
-		raise ValueError(f"Player '{player_name}' not found.")
+		raise ValueError(f"Player '{player_name}' not found. Please Type in a Valid Player Name.")
 
 	#Check that it has match data var
 	if "var morematchmx" not in response.text:
