@@ -2,6 +2,9 @@ import requests
 import json
 import pandas as pd
 import re
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import FuncFormatter
 
 # For Main Function `get_player_data`
 def normalize_player_name(player_name):
@@ -103,3 +106,94 @@ def calculate_age_difference(player_df, player_dob):
 	player_df["age_difference"] = player_df["player_age_at_match"] - player_df["opponent_age_at_match"] 
 	
 	return player_df
+
+# For Main Function `plot_player_data`
+def check_dataframe():
+	""" Check input datafram have the required columns"""
+	pass
+
+def create_plot():
+	""" Initialize the figure and axes."""
+	return plt.subplots(figsize=(12, 7.5))
+
+def plot_win_loss_results(player_df, ax):
+	""" Add separate scatter points for wins and losses."""
+	results = [
+		("W", "deepskyblue", "Match won"),
+		("L", "indigo", "Match lost")
+	]
+
+	for outcome, color, label in results:
+		subset = player_df.loc[player_df["win/loss"] == outcome]
+		ax.scatter(subset["player_age_at_match"], subset["age_difference"],
+				   c=color, s=10, label=label, zorder=0)
+
+	# Add the horizontal line at age_difference = 0
+	ax.axhline(0, color = "dimgray", linewidth = 0.6, zorder = 1)
+
+## Sub-helper Function for format_axes
+def give_min_max(player_df, column):
+	""" Return the minimum and maximum of a given DataFrame Column"""
+	col_min = player_df[column].min()
+	col_max = player_df[column].max()
+	return col_min, col_max
+
+def format_axes(ax, player_df):
+	""" Set axis ticks, and limits."""
+	age_min, age_max = give_min_max(player_df, "player_age_at_match")
+	diff_min, diff_max = give_min_max(player_df, "age_difference")
+	
+	x_min = np.floor(age_min / 2) * 2
+	x_max = np.ceil(age_max / 2) * 2
+
+	y_min = np.floor(diff_min / 5) * 5
+	y_max = np.ceil(diff_max / 5) * 5
+
+	ax.set_xticks(np.arange(x_min, x_max + 1, 2))
+	ax.set_yticks(np.arange(y_min, y_max + 1, 10))
+
+	ax.set_xlim(x_min - 0.5, x_max + 0.5)
+	ax.set_ylim(y_min, y_max)
+
+	ax.xaxis.tick_top()
+	ax.xaxis.set_label_position("top")
+
+	ax.tick_params(axis = 'x', colors = 'dimgray')
+	ax.tick_params(axis = 'y', colors = 'dimgray')
+
+def format_legend_grid(ax):
+	""" Set axis legend, and grid."""
+	ax.grid(True, axis = "both", color = "lightgray", linewidth = 1, alpha = 1.0)
+	ax.set_axisbelow(True)
+
+	## No Borders
+	ax.spines["top"].set_visible(False)
+	ax.spines["right"].set_visible(False)
+	ax.spines["left"].set_visible(False)
+	
+	ax.spines["bottom"].set_color("lightgray")
+	ax.spines["bottom"].set_linewidth(0.8)
+
+	# Legend on the top
+	ax.legend(loc = "upper center", bbox_to_anchor = (0.5, 1.125), ncol = 2, frameon = False)
+
+def format_y_labels(ax):
+	def format_temp(x, pos):
+	    if x > 0:
+	        return f"+{int(x)} Years"
+	    elif x == 0:
+	        return "Same age"
+	    else:
+	        return f"{int(x)} Years"
+
+	ax.yaxis.set_major_formatter(FuncFormatter(format_temp))
+
+def add_axis_labels(ax):
+	## axis additional labels
+	ax.text(0.01, 1.05,
+	        "Player’s\nage:",
+	        transform = ax.transAxes,
+	        fontsize = 9,
+	        ha = "left",
+		    color = "dimgray")
+	
