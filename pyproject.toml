@@ -11,7 +11,6 @@ dependencies = [
     "requests",
 	#"json",
     "pandas",
-	"matplotlib",
-	"beautifulsoup4"
+	"matplotlib"
 ]
 license = "MIT"
