@@ -108,9 +108,17 @@ def calculate_age_difference(player_df, player_dob):
 	return player_df
 
 # For Main Function `plot_player_data`
-def check_dataframe():
-	""" Check input datafram have the required columns"""
-	pass
+def check_dataframe(player_df):
+	""" Check input DataFrame have the required columns"""
+	required_columns = ["match_date", "win/loss", "player_age_at_match", "age_difference"]
+	
+	# Check if there's missing required columns
+	missing_columns = [col for col in required_columns 
+					   if col not in player_df.columns]
+
+	# Raise warning for missing columns
+	if missing_columns:
+		raise ValueError(f"Missing required columns: {missing_columns}")
 
 def create_plot():
 	""" Initialize the figure and axes."""
@@ -190,10 +198,32 @@ def format_y_labels(ax):
 
 def add_axis_labels(ax):
 	## axis additional labels
-	ax.text(0.01, 1.05,
-	        "Player’s\nage:",
+	ax.text(0.01, 1.06,
+	        "Player’s age:",
 	        transform = ax.transAxes,
 	        fontsize = 9,
 	        ha = "left",
 		    color = "dimgray")
+
+	ax.text(-0.08, 1.00,
+	        "Opponent’s\nAge\nDifference:",
+	        transform = ax.transAxes,
+	        fontsize = 9,
+	        ha = "left",
+		    color = "dimgray")
+
+def add_title(ax, player_df, player_name = ""):
+	""" Add a title using the player's name (if provided) and career age range."""
+	age_min, age_max = give_min_max(player_df, "player_age_at_match")
+	age_min = int(np.floor(age_min))
+	age_max = int(np.ceil(age_max))
+
+	if player_name:
+		title = f"{player_name}'s Professional Matches, Age {age_min} to {age_max}"
+	else:
+		title = f"Player Professional Matches, Age {age_min} to {age_max}"
 	
+	ax.set_title(title,
+			 fontsize = 12,
+			 fontweight = "bold",
+			 pad = 50)
