@@ -10,6 +10,7 @@ authors = [{ name = "Ivan Chan" }]
 dependencies = [
     "requests",
     "pandas",
-	"matplotlib"
+	"matplotlib",
+	"numpy"
 ]
 license = "MIT"
