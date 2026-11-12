@@ -1,5 +1,5 @@
 # Once finished, will uncomment
-from .private_func import normalize_player_name, fetch_player_js, js_to_df, get_player_dob
+from .private_func import normalize_player_name, fetch_player_js, js_to_df, get_player_dob, organize_player_df, calculate_age_difference
 
 import pandas as pd
 
@@ -16,10 +16,11 @@ def get_player_data(player_name):
 	player_dob = get_player_dob(player_name)
 
 	# Calculate Age and Age Difference
-
+	matches = organize_player_df(matches).copy()
+	matches = calculate_age_difference(matches, player_dob)
 	# Return Final Cleaned DataFrame
-	pass
-	
+	return matches
+
 
 # 5. Calculate player and opponent ages and age difference
 # 6. Clean and return DataFrame
