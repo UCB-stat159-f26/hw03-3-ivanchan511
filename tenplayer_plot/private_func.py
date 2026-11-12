@@ -1,7 +1,7 @@
 import requests
 import json
 import pandas as pd
-from bs4 import BeautifulSoup
+import re
 
 def normalize_player_name(player_name):
 	""" Normalize a player's name for URL."""
@@ -36,11 +36,9 @@ def fetch_player_js(player_name):
 	
 	return response.text
 
-def js_to_df(js_file):
+def js_to_df(js_content):
 	""" Parse JS content into a pandas DataFrame."""
-	matches = js_file.read()
-	
-	ranges = matches.split("=", 1)[1].strip()
+	ranges = js_content.split("=", 1)[1].strip()
 	ranges = ranges.removesuffix(";").strip()
 	
 	matches_list = json.loads(ranges)
@@ -48,17 +46,59 @@ def js_to_df(js_file):
 
 def get_player_dob(player_name):
 	"""Retrieve a player's date of birth from Tennis Abstract."""
-	url = (f"https://www.tennisabstract.com/cgi-bin/wplayer-classic.cgi?p={name}")
+	name = normalize_player_name(player_name)
+	url = f"https://www.tennisabstract.com/jsmatches/{name}.js"
 
-	response = requests.get(url)
+	response = requests.get(url, timeout=30)
 
-	# Fetch the DOB, looking specifically at the section where it contains the DOB
-	soup = BeautifulSoup(response.text, "html.parser")
-	bio = soup.find(id="biog")
-	if bio is None:
-		raise ValueError("Player biography not found.")
-
-	dob = re.search(r"\((\d{1,2}-[A-Za-z]{3}-\d{4})\)", bio.get_text())
-
-	return pd.to_datetime(dob.group(1), format="%d-%b-%Y")
+	dob_match = re.search(r"\bvar\s+dob\s*=\s*(\d{8})\s*;", response.text)
 	
+	if dob_match is None:
+		raise ValueError("Player date of birth not found.")
+
+	return pd.to_datetime(dob_match.group(1), format="%Y%m%d")
+
+def identify_gender(player_df):
+	""" Identify whether the player is female or male."""
+	identifier = player_df.iloc[0, 16]
+
+	# If it's DOB, which would be a string and 8 digits long --> Female
+	if isinstance(identifier, str) and len(identifier) == 8 and identifier.isdigit():
+		return "F"
+	return "M"
+
+def organize_player_df(player_df):
+	""" Organize and Return Simplified Player Data with Neccessary Columns."""
+	gender = identify_gender(player_df)
+	match_data = player_df.iloc[:, [0, 4, 11, 16]].copy()
+
+	# Rename columns
+	columns = ["match_date", "win/loss", "opponent_name"]
+	if gender == "F":
+		columns.append("opponent_dob")
+	else:
+		columns.append("opponent_age_at_match")
+	match_data.columns = columns
+
+	# Convert Dates to datetime object
+	match_data["match_date"] = pd.to_datetime(match_data["match_date"], format="%Y%m%d", errors="coerce")
+	match_data.attrs["gender"] = gender
+	return match_data
+
+
+def calculate_age_difference(player_df, player_dob):
+	""" Calculate player age and/or opponent age, along with age difference."""
+	gender = player_df.attrs["gender"]
+
+	# Calculate player_age_at_match
+	player_df["player_age_at_match"] = (player_df["match_date"] - player_dob).dt.days / 365.2425
+
+	if gender == "F":
+		opponent_dob = pd.to_datetime(player_df["opponent_dob"], format="%Y%m%d", errors="coerce")
+		player_df["opponent_age_at_match"] = (player_df["match_date"] - opponent_dob).dt.days / 365.2425
+	else:
+		player_df["opponent_age_at_match"] = pd.to_numeric(player_df["opponent_age_at_match"], errors="coerce")
+
+	player_df["age_difference"] = player_df["player_age_at_match"] - player_df["opponent_age_at_match"] 
+	
+	return player_df
