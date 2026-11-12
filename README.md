@@ -15,7 +15,7 @@ The package uses Python and the following libraries:
 ## Package Main Functions
 The package provides two main public functions:
 1. `get_player_data`
-2. `plot_payer_data`
+2. `plot_payer_data` 
 
 The following sections explain how to use each function.
 ### Function Usage and Guide
@@ -101,7 +101,13 @@ import tenplayer_plot
 * Refer to the Function Usage and Guide section above for examples.
 
 ## Reflection
-TBD
+I feel that the main challenge of this assignment was developing the `get_player_data()` function. The overall workflow was quite different from HW1 and HW2 because I was moving away from working with a single player's data toward building a package that could retrieve and process data for different players on Tennis Abstract. This meant I had to account for differences in the data structures between male and female players. Handling this difference was not difficult once I understood the structure of the data. 
+
+However, retrieving the player's own date of birth took me considerably longer. Initially, I thought I would need to scrape the player's birthday from the profile webpage. Eventually, I discovered that Tennis Abstract provides a separate JavaScript file containing player information, including their date of birth. Finding this file significantly simplified the process.
+
+Another important thing I learned was separating different components of a program into individual functions. By organizing the code into smaller helper functions, I was able to keep the main functions cleaner and make the overall package easier to maintain. It also allowed me to test individual helper functions independently rather than having to run the entire workflow every time I wanted to check whether a particular component worked correctly.
+
+Overall, this assignment gave me experience working with a project structure that involves writing helper functions in one Python file and importing them into another. Previously, I had done most of my coding in Jupyter notebooks, so organizing code across multiple files and developing a reusable Python package was a new experience for me. I also gained more experience with package organization and writing test cases. Most importantly, it was rewarding to turn work developed for a single visualization into a package that can retrieve and visualize data for different tennis players.
 
 ## Project Structure
 The following diagram illustrates the overall file structure of the project:
